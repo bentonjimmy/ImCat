@@ -28,7 +28,7 @@
     xs = size(im,2);
      
      
-    gf = gaussianFilter(11,1.5);
+    gf = fspecial('gaussian', 11, 1.5);
     im = filter2(gf, im(:,:,1));
     im2 = zeros(ys,xs,5);
     for i = 1:5
@@ -46,7 +46,7 @@
     for j = 1:4
         for i = 1:4
             clip = im2(round((j-1)*ys/4+1):round(j*ys/4),round((i-1)*xs/4+1):round(i*xs/4));
-            eoh(j,i,:) = permute(hist(makelinear(clip), 0:5), [1 3 2]);
+            eoh(j,i,:) = permute(hist(clip, 5), [1 3 2]);
         end
     end
      
