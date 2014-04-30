@@ -25,7 +25,7 @@ for i=1:r
    end
 end
 
-descriptor = zeros(1, 255); %the final image descriptor
+descriptor = zeros(1, 256); %the final image descriptor
 
 %evaluate each pixel in the image
 for i=1:(r-7)
@@ -56,7 +56,7 @@ for i=1:(r-7)
        while((y<=64) && (swhist(y) ~= 0))
            %quantize the values in the sw histogram 
            if(structure_values(y, 2) < 6)
-               val = floor(structure_values(y, 3) / 8);
+               val = 1+floor(structure_values(y, 3) / 8);
            elseif(structure_values(y, 2) < 20)
                val = 33 + (floor(structure_values(y, 1)/90)*8) + floor(structure_values(y, 3)/32);
            elseif(structure_values(y, 2) < 60)
@@ -64,7 +64,18 @@ for i=1:(r-7)
            elseif(structure_values(y, 2) < 110)
                val = 129 + (floor(structure_values(y, 1)/22.5)*4) + floor(structure_values(y, 3)/64);
            else
+               if(structure_values(y, 1) == 360)
+                  structure_values(y, 1) = 359; 
+               end
                val = 193 + (floor(structure_values(y, 1)/22.5)*4) + floor(structure_values(y, 3)/64);
+           end
+           if(val > 256)
+               i
+               j
+               structure_values(y, 1)
+               structure_values(y, 2)
+               structure_values(y, 3)
+             break;
            end
            %Increment the histogram by 1
            descriptor(val) = descriptor(val) + 1;
