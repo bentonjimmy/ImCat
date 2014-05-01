@@ -27,7 +27,7 @@
     ys = size(im,1);
     xs = size(im,2);
      
-     
+    %Apply a gaussian filter to the image 
     gf = fspecial('gaussian', 11, 1.5);
     im = filter2(gf, im(:,:,1));
     im2 = zeros(ys,xs,5);
@@ -42,13 +42,21 @@
     ime = edge(im, 'canny', [], 1.5)+0;
     im2 = im2.*ime;
      
+    
     eoh = zeros(4,4,6);
     for j = 1:4
         for i = 1:4
             clip = im2(round((j-1)*ys/4+1):round(j*ys/4),round((i-1)*xs/4+1):round(i*xs/4));
-            eoh(j,i,:) = permute(hist(clip, 5), [1 3 2]);
+            eohist = hist(clip, 0:5);
+            
+            peohist = permute(eohist, [2, 1]);
+%            peohist2 = hist(peohist);
+            peosum = sum(peohist);
+            eoh(j,i,:) = peosum;
+            
+            %eoh(j,i,:) = permute(eohist, [1 3 2]);
         end
     end
      
     eoh = eoh(:,:,2:6);
-
+  
