@@ -28,59 +28,59 @@ end
 descriptor = zeros(1, 256); %the final image descriptor
 
 %evaluate each pixel in the image
-for i=1:(r-7)
-   for j=1:(c-7)
+for j=1:(c-7)
+   swhist = zeros(361, 256, 256); %histogram of values in the structure
+   for i=1:(r-7)
        %go through 8x8 pixel structure
        structure_values = zeros(64, 3); %the values in the 8x8 structure
-       swhist = zeros(1, 64); %histogram of values in the structure
-       for a=i:(i+7)
-          for b=j:(j+7)
-             hue = HMMDim(a, b, 1);
-             diff = HMMDim(a, b, 2);
-             sum = HMMDim(a, b, 3);
-             z=1;
-             while(z<=64)%Check if the value already appears in vector or needs to be added
-                if((structure_values(z, 1) == hue && structure_values(z, 2) == diff && structure_values(z, 3) == sum) || (structure_values(z, 1) == 0 && structure_values(z, 2) == 0 && structure_values(z, 3) == 0))
-                    swhist(z) = swhist(z)+1;
-                    structure_values(z, 1) = hue;
-                    structure_values(z, 2) = diff;
-                    structure_values(z, 3) = sum;
-                    z = 65; %exit the loop
-                end
-                z = z+1;
-             end
-          end
+       %swhist = zeros(1, 64); %histogram of values in the structure
+       if(i<9) %Get the initial 8x8 values
+           for a=i:(i+7)
+              for b=j:(j+7)
+                 %hue = HMMDim(a, b, 1);
+                 %diff = HMMDim(a, b, 2);
+                 %sum = HMMDim(a, b, 3);
+                 swhist(HMMDim(a, b, 1), HMMDim(a, b, 2), HMMDim(a, b, 3)) = swhist(HMMDim(a, b, 1), HMMDim(a, b, 2), HMMDim(a, b, 3)) + 1;
+              end
+           end
+       else %After the first 8x8 are read, read the 9th row and so on
+           for b=j:(j+7)
+                 %hue = HMMDim(i, b, 1);
+                 %diff = HMMDim(i, b, 2);
+                 %sum = HMMDim(i, b, 3);
+                 swhist(HMMDim(i, b, 1), HMMDim(i, b, 2), HMMDim(i, b, 3)) = swhist(HMMDim(i, b, 1), HMMDim(i, b, 2), HMMDim(i, b, 3)) + 1;
+                 swhist(HMMDim(i-8, b, 1), HMMDim(i-8, b, 2), HMMDim(i-8, b, 3)) = swhist(HMMDim(i-8, b, 1), HMMDim(i-8, b, 2), HMMDim(i-8, b, 3)) + 1;
+           end
        end
-       y=1;
+       
        %Add the colors found in the 8x8 structure to the CSD histogram
-       while((y<=64) && (swhist(y) ~= 0))
-           %quantize the values in the sw histogram 
-           if(structure_values(y, 2) < 6)
-               val = 1+floor(structure_values(y, 3) / 8);
-           elseif(structure_values(y, 2) < 20)
-               val = 33 + (floor(structure_values(y, 1)/90)*8) + floor(structure_values(y, 3)/32);
-           elseif(structure_values(y, 2) < 60)
-               val = 65 + (floor(structure_values(y, 1)/22.5)*4) + floor(structure_values(y, 3)/64);
-           elseif(structure_values(y, 2) < 110)
-               val = 129 + (floor(structure_values(y, 1)/22.5)*4) + floor(structure_values(y, 3)/64);
-           else
-               if(structure_values(y, 1) == 360)
-                  structure_values(y, 1) = 359; 
+       for x=1:361 %represents hue
+           for y=1:256 %represents diff
+               for z=1:256 %represents sum
+                   if(swhist(x, y, z) > 1)%The value appeared at least once
+                       %quantize the values in the sw histogram 
+                       if((y-1) < 6)
+                           val = 1+floor((z-1) / 8);
+                       elseif((y-1) < 20)
+                           val = 33 + (floor((x-1)/90)*8) + floor((z-1)/32);
+                       elseif((y-1) < 60)
+                           val = 65 + (floor((x-1)/22.5)*4) + floor((z-1)/64);
+                       elseif((y-1) < 110)
+                           val = 129 + (floor((x-1)/22.5)*4) + floor((z-1)/64);
+                       else
+                           hue = x;
+                           if((hue-1) == 360)
+                              hue = 359; 
+                           end
+                           val = 193 + (floor(hue/22.5)*4) + floor((z-1)/64);
+                       end
+                       %Increment the histogram by 1
+                       descriptor(val) = descriptor(val) + 1;
+                   end
                end
-               val = 193 + (floor(structure_values(y, 1)/22.5)*4) + floor(structure_values(y, 3)/64);
            end
-           if(val > 256)
-               i
-               j
-               structure_values(y, 1)
-               structure_values(y, 2)
-               structure_values(y, 3)
-             break;
-           end
-           %Increment the histogram by 1
-           descriptor(val) = descriptor(val) + 1;
-           y = y+1;
        end
+        
    end
 end
 
